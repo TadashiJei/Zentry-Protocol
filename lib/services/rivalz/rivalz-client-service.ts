@@ -2,15 +2,32 @@
  * Rivalz Client Service
  * 
  * This service uses the official Rivalz client SDK to interact with the Rivalz platform.
+ * In browser environments, it uses a mock implementation to avoid Node.js dependencies.
  */
 
-import RivalzClient from 'rivalz-client';
 import { ReputationScore } from './rc-service';
 import { IdentityVerification, ReputationProfile } from './rd-service';
 import { OnChainActivity } from './adcs-service';
+import MockRivalzClient from './mock-rivalz-client';
+
+// Dynamically import the real client only in Node.js environment
+let RivalzClient: any;
+if (typeof window === 'undefined') {
+  // Server-side (Node.js)
+  try {
+    RivalzClient = require('rivalz-client').default;
+  } catch (error) {
+    console.warn('Failed to load rivalz-client, using mock implementation');
+    RivalzClient = MockRivalzClient;
+  }
+} else {
+  // Client-side (browser)
+  RivalzClient = MockRivalzClient;
+}
 
 /**
  * Service for interacting with the Rivalz platform using the official SDK
+ * or a mock implementation in browser environments
  */
 export class RivalzClientService {
   private client: any; // RivalzClient type
